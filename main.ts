@@ -1,9 +1,8 @@
 import { REST, Routes, Client, GatewayIntentBits, SlashCommandBuilder } from 'discord.js';
 import { config } from 'dotenv';
-import { Server } from './server';
+import { Server } from './structure/server';
 
 config();
-
 
 const commands: {
     [key: string]: {
@@ -16,8 +15,9 @@ const commands: {
             .setName('start')
             .setDescription('Starts the server'),
         execute: async (interaction) => {
-            // const server = new Server(interaction.guildId as string);
-            // server.start();
+            const s = Server.cache.get(interaction.guildId as string);
+            if (!s) return await interaction.reply('Server not found!');
+            s.start();
             await interaction.reply('Server started!');
         }
     },
@@ -26,8 +26,9 @@ const commands: {
             .setName('stop')
             .setDescription('Stops the server'),
         execute: async (interaction) => {
-            // const server = new Server(interaction.guildId as string);
-            // server.stop();
+            const s = Server.cache.get(interaction.guildId as string);
+            if (!s) return await interaction.reply('Server not found!');
+            s.stop();
             await interaction.reply('Server stopped!');
         }
     },
@@ -35,9 +36,25 @@ const commands: {
         data: new SlashCommandBuilder()
             .setName('set')
             .setDescription('Sets the server jar')
-            .addStringOption(option => option.setName('name').setDescription('The name of the server').setRequired(true)),
+            .addStringOption((option: any) => option.setName('name').setDescription('The name of the server').setRequired(true)),
         execute: async (interaction) => {
-            await interaction.reply('Received: ' + interaction.options.getString('name'));
+            try {
+                new Server(interaction.guildId, interaction.options.getString('name'));
+                await interaction.reply('Server created!');
+            } catch (error) {
+                interaction.reply('Error: ' + 'Server already exists!');
+            }
+        }
+    },
+    online: {
+        data: new SlashCommandBuilder()
+            .name('online')
+            .setDescription('Gets the online players'),
+        execute: async (interaction) => {
+            const s = Server.cache.get(interaction.guildId as string);
+            if (!s) return await interaction.reply('Server not found!');
+            const players = await s.getPlayers();
+            await interaction.reply(`${players.length} players online: ${players.join(', ')}`);
         }
     }
 }
@@ -61,7 +78,7 @@ const main = async () => {
         console.log(`Logged in as ${client.user?.tag}!`);
     });
 
-    client.on('interactionCreate', async interaction => {
+    client.on('interactionCreate', async (interaction: any) => {
         if (!interaction.isChatInputCommand()) return;
 
         const command = commands[interaction.commandName];
