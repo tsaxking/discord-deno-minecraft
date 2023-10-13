@@ -47,7 +47,3 @@ process.on('SIGUSR1', exit);
 process.on('SIGUSR2', exit);
 process.on('uncaughtException', exit);
 process.on('SIGTERM', exit);
-// process.on('SIGHUP', exit);
-// process.on('SIGBREAK', exit);
-// process.on('SIGWINCH', exit);
-// process.on('SIGKILL', exit);

@@ -1,10 +1,8 @@
-import { REST, Routes, Client, GatewayIntentBits } from 'discord.js';
+import { REST, Routes, Client, GatewayIntentBits, SlashCommandBuilder } from 'discord.js';
 import { config } from 'dotenv';
 import { Server } from './server';
 
 config();
-
-const s = new Server('vh-mc');
 
 
 const commands: {
@@ -17,8 +15,30 @@ const commands: {
         name: 'start',
         description: 'Starts the server',
         execute: async (interaction: any) => {
-            s.start();
             await interaction.reply('Starting server...');
+        }
+    },
+    {
+        name: 'stop',
+        description: 'Stops the server',
+        execute: async (interaction: any) => {
+            await interaction.reply('Stopping server...');
+        }
+    },
+    {
+        name: 'setup',
+        description: 'Sets up the server',
+        options: [
+            {
+                name: 'server',
+                description: 'The server to setup',
+                type: 'STRING',
+                required: true
+            }
+        ],
+        execute: async (interaction: any) => {
+            const server = new Server(interaction.options.getString('server') as string);
+            await interaction.reply(`Setting up server ${server.id}...`);
         }
     }
 ];

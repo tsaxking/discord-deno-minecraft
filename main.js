@@ -13,16 +13,37 @@ const discord_js_1 = require("discord.js");
 const dotenv_1 = require("dotenv");
 const server_1 = require("./server");
 (0, dotenv_1.config)();
-const s = new server_1.Server('vh-mc');
 const commands = [
     {
         name: 'start',
         description: 'Starts the server',
         execute: (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-            s.start();
             yield interaction.reply('Starting server...');
         })
     },
+    {
+        name: 'stop',
+        description: 'Stops the server',
+        execute: (interaction) => __awaiter(void 0, void 0, void 0, function* () {
+            yield interaction.reply('Stopping server...');
+        })
+    },
+    {
+        name: 'setup',
+        description: 'Sets up the server',
+        options: [
+            {
+                name: 'server',
+                description: 'The server to setup',
+                type: 'STRING',
+                required: true
+            }
+        ],
+        execute: (interaction) => __awaiter(void 0, void 0, void 0, function* () {
+            const server = new server_1.Server(interaction.options.getString('server'));
+            yield interaction.reply(`Setting up server ${server.id}...`);
+        })
+    }
 ];
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const rest = new discord_js_1.REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
