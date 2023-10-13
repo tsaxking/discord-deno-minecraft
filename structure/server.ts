@@ -18,10 +18,14 @@ type Listener = {
     callback: ListenerCallback;
 }
 
+if (!fs.existsSync(path.resolve(__dirname, '../servers'))) {
+    fs.mkdirSync(path.resolve(__dirname, '../', './servers'));
+}
+
 export class Server {
     public static readonly cache: Map<string, Server> = new Map<string, Server>();
 
-    public readonly child = spawn('cmd');
+    public readonly child = spawn('bash');
 
     private readonly retrieveTests:  Retrieve[] = [];
     private readonly $listeners: Listener[] = [];
@@ -32,6 +36,8 @@ export class Server {
             throw new Error('Server already exists');
         }
         Server.cache.set(this.guildId, this);
+
+        this.createServer();
 
         this.runCommand('cd', this.serverPath);
 
@@ -92,7 +98,7 @@ export class Server {
     }
 
     get serverPath() {
-        return path.resolve(__dirname, './servers', this.guildId);
+        return path.resolve(__dirname, '../servers', this.guildId);
     }
 
 
@@ -101,7 +107,7 @@ export class Server {
     }
 
     start() {
-        this.runCommand('java', '-jar', 'server.jar', 'nogui');
+        this.runCommand('java', '-jar', '-Xmx1024M', '-Xms1024M', 'server.jar', 'nogui');
     }
 
     stop() {

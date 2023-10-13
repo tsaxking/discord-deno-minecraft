@@ -48,7 +48,7 @@ const commands: {
     },
     online: {
         data: new SlashCommandBuilder()
-            .name('online')
+            .setName('online')
             .setDescription('Gets the online players'),
         execute: async (interaction) => {
             const s = Server.cache.get(interaction.guildId as string);
