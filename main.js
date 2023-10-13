@@ -11,50 +11,43 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const dotenv_1 = require("dotenv");
-const server_1 = require("./server");
 (0, dotenv_1.config)();
-const commands = [
-    {
-        name: 'start',
-        description: 'Starts the server',
+const commands = {
+    start: {
+        data: new discord_js_1.SlashCommandBuilder()
+            .setName('start')
+            .setDescription('Starts the server'),
         execute: (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-            yield interaction.reply('Starting server...');
+            // const server = new Server(interaction.guildId as string);
+            // server.start();
+            yield interaction.reply('Server started!');
         })
     },
-    {
-        name: 'stop',
-        description: 'Stops the server',
+    stop: {
+        data: new discord_js_1.SlashCommandBuilder()
+            .setName('stop')
+            .setDescription('Stops the server'),
         execute: (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-            yield interaction.reply('Stopping server...');
+            // const server = new Server(interaction.guildId as string);
+            // server.stop();
+            yield interaction.reply('Server stopped!');
         })
     },
-    {
-        name: 'setup',
-        description: 'Sets up the server',
-        options: [
-            {
-                name: 'server',
-                description: 'The server to setup',
-                type: 'STRING',
-                required: true
-            }
-        ],
+    set: {
+        data: new discord_js_1.SlashCommandBuilder()
+            .setName('set')
+            .setDescription('Sets the server jar')
+            .addStringOption(option => option.setName('name').setDescription('The name of the server').setRequired(true)),
         execute: (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-            const server = new server_1.Server(interaction.options.getString('server'));
-            yield interaction.reply(`Setting up server ${server.id}...`);
+            yield interaction.reply('Received: ' + interaction.options.getString('name'));
         })
     }
-];
+};
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const rest = new discord_js_1.REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     try {
         console.log('Started refreshing application (/) commands.');
-        yield rest.put(discord_js_1.Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID), { body: commands.map(c => ({
-                name: c.name,
-                description: c.description,
-                options: c.options
-            }))
-        });
+        yield rest.put(discord_js_1.Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID), { body: Object.values(commands).map(c => c.data) });
         console.log('Successfully reloaded application (/) commands.');
     }
     catch (error) {
@@ -68,7 +61,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
         if (!interaction.isChatInputCommand())
             return;
-        const command = commands.find(c => c.name === interaction.commandName);
+        const command = commands[interaction.commandName];
         if (command) {
             try {
                 yield command.execute(interaction);

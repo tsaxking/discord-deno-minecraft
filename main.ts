@@ -6,42 +6,41 @@ config();
 
 
 const commands: {
-    name: string;
-    description: string;
-    options?: any[];
-    execute: (interaction: any) => Promise<void>;
-}[] = [
-    {
-        name: 'start',
-        description: 'Starts the server',
-        execute: async (interaction: any) => {
-            await interaction.reply('Starting server...');
+    [key: string]: {
+        data: any,
+        execute: (interaction: any) => Promise<void>
+    }
+} = {
+    start: {
+        data: new SlashCommandBuilder()
+            .setName('start')
+            .setDescription('Starts the server'),
+        execute: async (interaction) => {
+            // const server = new Server(interaction.guildId as string);
+            // server.start();
+            await interaction.reply('Server started!');
         }
     },
-    {
-        name: 'stop',
-        description: 'Stops the server',
-        execute: async (interaction: any) => {
-            await interaction.reply('Stopping server...');
+    stop: {
+        data: new SlashCommandBuilder()
+            .setName('stop')
+            .setDescription('Stops the server'),
+        execute: async (interaction) => {
+            // const server = new Server(interaction.guildId as string);
+            // server.stop();
+            await interaction.reply('Server stopped!');
         }
     },
-    {
-        name: 'setup',
-        description: 'Sets up the server',
-        options: [
-            {
-                name: 'server',
-                description: 'The server to setup',
-                type: 'STRING',
-                required: true
-            }
-        ],
-        execute: async (interaction: any) => {
-            const server = new Server(interaction.options.getString('server') as string);
-            await interaction.reply(`Setting up server ${server.id}...`);
+    set: {
+        data: new SlashCommandBuilder()
+            .setName('set')
+            .setDescription('Sets the server jar')
+            .addStringOption(option => option.setName('name').setDescription('The name of the server').setRequired(true)),
+        execute: async (interaction) => {
+            await interaction.reply('Received: ' + interaction.options.getString('name'));
         }
     }
-];
+}
 
 const main = async () => {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN as string);
@@ -49,12 +48,7 @@ const main = async () => {
     try {
         console.log('Started refreshing application (/) commands.');
 
-        await rest.put(Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID as string), { body: commands.map(c => ({
-                name: c.name,
-                description: c.description,
-                options: c.options
-            })) 
-        });
+        await rest.put(Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID as string), { body: Object.values(commands).map(c => c.data) });
 
         console.log('Successfully reloaded application (/) commands.');
     } catch (error) {
@@ -70,7 +64,7 @@ const main = async () => {
     client.on('interactionCreate', async interaction => {
         if (!interaction.isChatInputCommand()) return;
 
-        const command = commands.find(c => c.name === interaction.commandName);
+        const command = commands[interaction.commandName];
         if (command) {
             try {
                 await command.execute(interaction);
